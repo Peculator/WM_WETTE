@@ -137,8 +137,6 @@ try {
 	    }
     }
 
-    //print_r($AllGames_AllTipps);
-
 	$AllGames_AllTipps_Added=array();
     // Adding Points
     for ($n=1; $n < sizeof($AllGames_AllTipps)+1; $n++) { 
@@ -151,9 +149,13 @@ try {
     		}
     	}
     }
-
-    print_r($AllGames_AllTipps_Added);
-    
+    // Remember the position
+    $AllGames_AllTipps_Added_Position = array();
+    for ($n=1; $n < sizeof($AllGames_AllTipps_Added)+1; $n++) { 
+    	for ($m=1; $m < sizeof($AllGames_AllTipps_Added[$n])+1; $m++) { 
+    		$AllGames_AllTipps_Added_Position[$n][$m] = getPosition($AllGames_AllTipps_Added,$n,$m);
+    	}
+    }
 }
 catch (\PDOException $ex) {
     echo ($ex);
@@ -222,30 +224,45 @@ catch (\PDOException $ex) {
 		?>
 
 	    
-	    // for ($i=0; $i<sizeOf($results);$i++) {
-	    //     $sum_Sven = 0;
-	    //     $sum_Marian = 0;
-	    //     for ($k=1; $k<sizeOf($results[$i]);$k++) {
-	    //          if ($k%2==1)  {
-	    //             $sum_Sven += $results[$i][$k];
-	    //         }
-	    //         else {
-	    //             $sum_Marian += $results[$i][$k];
-	    //         }
-	    //     }
-	    //     echo '['.$i.','.$sum_Sven.','.$sum_Marian.']';
-	    //     if($i != sizeOf($results)-1){
-	    //         echo ',';
-	    //     }
-	    // }
-	    // echo ']);';
-	    
 	    var options = {
 	    title: 'Punkte-Verlauf',
 	    hAxis: {title: 'Spiele',  titleTextStyle: {color: 'red'}}
 	    };
 	    var chart = new google.visualization.LineChart(document.getElementById('chart_div'));
 	    chart.draw(data, options);
+
+
+	    //---------------------------
+
+	    var data2 = google.visualization.arrayToDataTable([	    	
+	    ['Match', <?php for ($p=1; $p < sizeof($AllPlayer)+1; $p++) { 
+	    	echo '\''.$AllPlayer[$p].'\',';
+	    }
+	     echo '],';
+
+	    for ($i=1; $i<sizeOf($AllGames_AllTipps_Added_Position)+1;$i++) {
+	    	echo '['.$i.',';
+			for ($k=1; $k<sizeOf($AllGames_AllTipps_Added_Position[$i])+1;$k++) {
+				if(($AllGames_AllTipps_Added_Position[$i][$k])!=null)
+					echo $AllGames_AllTipps_Added_Position[$i][$k].',';
+				else echo '0,';
+			}
+			echo ']';
+			if($i != sizeOf($AllGames_AllTipps_Added_Position)){
+	            echo ',';
+	        }
+	    }
+	    echo ']);';
+		?>
+
+	    
+	    var options2 = {
+	    title: 'Platzierungs-Verlauf',
+	    hAxis: {title: 'Spiele',  titleTextStyle: {color: 'red'}},
+		vAxis: { direction:'-1', maxValue:'10', minValue:'1',viewWindow: {min:'1'}}
+		};
+	    var chart2 = new google.visualization.LineChart(document.getElementById('chart_div2'));
+	    chart2.draw(data2, options2);
 	  }
 	    
     </script>
@@ -343,10 +360,10 @@ catch (\PDOException $ex) {
         </table>
       </br>
         <h3  id="Punkte" class="sub-header">Punkte-Verlauf</h3>
-        <div id="chart_div">Kommt noch</div>
+        <div id="chart_div"></div>
         </br>
         <h3  id="Platz" class="sub-header">Platzierungs-Verlauf</h3>
-        <div id="chart_div2">Kommt noch</div>
+        <div id="chart_div2"></div>
         </br>
         <h3  id="Uber" class="sub-header">Übersicht</h3>
         <table class="table table-hover table-bordered">

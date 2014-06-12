@@ -350,7 +350,7 @@ catch (\PDOException $ex) {
                                 else{ 
                                   $dis = "disabled";
 
-                                  if($ergebnisse[$game[2]][2] != 0  && $ergebnisse[$game[2]][2] != 1){
+                                  if($ergebnisse[$game[2]][2] != 0 ){
                                   	echo $ergebnisse[$game[2]][0].' : '.$ergebnisse[$game[2]][1];
                                   }else{
                                   	echo '- : -'; 

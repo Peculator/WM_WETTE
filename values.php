@@ -26,8 +26,7 @@ for ($i=0; $i < sizeof($spiele); $i++) {
 			$result=1;
 		}
 	}
-}
-	
+}	
 
 	return $result;
 }
@@ -39,7 +38,7 @@ function getCounter($tipps,$ergebnisse,$spiele,$playerID){
 	foreach ($tipps as $tipp) {
 		for ($i=1; $i < sizeof($spiele)+1; $i++) { 
 				
-			if($tipp[1]==$playerID && $tipp[0]==$i && $ergebnisse[$spiele[$i][2]][2]!=0 && $ergebnisse[$spiele[$i][2]][2]!=1){
+			if($tipp[1]==$playerID && $tipp[0]==$i && $ergebnisse[$spiele[$i][2]][2]!=0 && $ergebnisse[$spiele[$i][2]][2]){
 				
 
 				//Ergebnis
@@ -62,6 +61,17 @@ function getCounter($tipps,$ergebnisse,$spiele,$playerID){
 	$value[0]=$rt;$value[1]=$rd;$value[2]=$re;
 
 	return $value;
+}
+
+function getPosition($AllGames_AllTipps_Added,$game,$player){
+	$pos = 1;
+	$compare = $AllGames_AllTipps_Added[$game];
+	for ($i=1; $i < sizeof($compare)+1; $i++) { 
+		if($compare[$i]> $compare[$player]){
+			$pos++;
+		}
+	}
+	return $pos;
 }
 
 function getCounterSingle($tipps,$ergebnisse,$spiele,$playerID,$gameIndex){
