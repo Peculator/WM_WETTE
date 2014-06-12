@@ -4,6 +4,34 @@ $appname = "WM-Wette 2014";
 $name1 = "Tipps";
 $name2 = "Tabelle";
 
+function getPoints($tipp,$ergebnisse,$spiele,$playerID,$gameIndex){
+$result = 0;
+
+for ($i=0; $i < sizeof($spiele); $i++) { 
+
+	if($tipp[1]==$playerID && $tipp[0]==$i && $i==$gameIndex){
+	
+		
+		//Ergebnis
+		if($tipp[2] == $ergebnisse[$spiele[$i][2]][0] && $tipp[3] == $ergebnisse[$spiele[$i][2]][1]){
+			$result=3;
+		}
+		//Tendenz + Differenz
+		elseif($tipp[2]- $tipp[3] == $ergebnisse[$spiele[$i][2]][0]-$ergebnisse[$spiele[$i][2]][1]){
+			$result=2;
+		}
+		//Tendenz
+		elseif($tipp[2]> $tipp[3] && $ergebnisse[$spiele[$i][2]][0]>$ergebnisse[$spiele[$i][2]][1] ||
+			$tipp[2]<$tipp[3] && $ergebnisse[$spiele[$i][2]][0]<$ergebnisse[$spiele[$i][2]][1]){
+			$result=1;
+		}
+	}
+}
+	
+
+	return $result;
+}
+
 function getCounter($tipps,$ergebnisse,$spiele,$playerID){
 	$value=array();
 	$rt=0;$rd=0;$re=0;

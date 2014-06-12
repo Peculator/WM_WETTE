@@ -15,6 +15,7 @@ $teams      = array();
 $ergebnisse = array();
 $spieltage  = array();
 $AllPlayer  = array();
+$AllGames_AllTipps = array();
 $myID;
 $myName;
 $currentDateTime = new DateTime('now');
@@ -110,6 +111,48 @@ try {
             $row->Tipp2
         );
     }
+
+    // Graphs
+	// ----------------- Alle Tipps von allen bisherigen Spielen pro Spieler--------------
+	// [ Spielnummer ] := a[Spielernummer]= tippID
+    for ($i=1; $i < sizeof($games)+1; $i++) { 
+
+		if($games[$i][3]<$currentDateTime){
+	    	for ($k=1; $k < sizeof($AllPlayer)+1; $k++) { 
+
+	    		if(!isset($AllGames_AllTipps[$i])){
+	    			$AllGames_AllTipps[$i] = array();
+	    		}
+
+	    		foreach ($AllTipps as $tip) {
+	    			if($tip[1]==$k && $tip[0]==$i){
+	    		 		//$AllGames_AllTipps[$i][$k] = $tip;
+						$AllGames_AllTipps[$i][$k] = getPoints($tip,$ergebnisse,$games,$k,$i);
+	    		 	}
+	    		 	else if(empty($AllGames_AllTipps[$i][$k])){
+	    		 		$AllGames_AllTipps[$i][$k] = 0;
+	    		 	}
+	    		}
+	    	}
+	    }
+    }
+
+    //print_r($AllGames_AllTipps);
+
+	$AllGames_AllTipps_Added=array();
+    // Adding Points
+    for ($n=1; $n < sizeof($AllGames_AllTipps)+1; $n++) { 
+    	for ($m=1; $m < sizeof($AllGames_AllTipps[$n])+1; $m++) { 
+    		if($n>1){
+    			$AllGames_AllTipps_Added[$n][$m] = $AllGames_AllTipps[$n][$m] + $AllGames_AllTipps_Added[$n-1][$m] ;
+    		}	
+    		else{
+    			$AllGames_AllTipps_Added[$n][$m] = $AllGames_AllTipps[$n][$m];
+    		}
+    	}
+    }
+
+    print_r($AllGames_AllTipps_Added);
     
 }
 catch (\PDOException $ex) {
@@ -157,9 +200,28 @@ catch (\PDOException $ex) {
     google.load("visualization", "1", {packages:["corechart"]});
     google.setOnLoadCallback(drawChart);
     function drawChart() {
-	    var data = google.visualization.arrayToDataTable([
-	    ['Match', 'Sven', 'Marian'],]);
-	    <?php
+	    var data = google.visualization.arrayToDataTable([	    	
+	    ['Match', <?php for ($p=1; $p < sizeof($AllPlayer)+1; $p++) { 
+	    	echo '\''.$AllPlayer[$p].'\',';
+	    }
+	     echo '],';
+
+	    for ($i=1; $i<sizeOf($AllGames_AllTipps_Added)+1;$i++) {
+	    	echo '['.$i.',';
+			for ($k=1; $k<sizeOf($AllGames_AllTipps_Added[$i])+1;$k++) {
+				if(($AllGames_AllTipps_Added[$i][$k])!=null)
+					echo $AllGames_AllTipps_Added[$i][$k].',';
+				else echo '0,';
+			}
+			echo ']';
+			if($i != sizeOf($AllGames_AllTipps_Added)){
+	            echo ',';
+	        }
+	    }
+	    echo ']);';
+		?>
+
+	    
 	    // for ($i=0; $i<sizeOf($results);$i++) {
 	    //     $sum_Sven = 0;
 	    //     $sum_Marian = 0;
@@ -177,14 +239,15 @@ catch (\PDOException $ex) {
 	    //     }
 	    // }
 	    // echo ']);';
-	    ?>
+	    
 	    var options = {
 	    title: 'Punkte-Verlauf',
 	    hAxis: {title: 'Spiele',  titleTextStyle: {color: 'red'}}
 	    };
-	    // var chart = new google.visualization.LineChart(document.getElementById('chart_div'));
-	    //   chart.draw(data, options);
-	    };
+	    var chart = new google.visualization.LineChart(document.getElementById('chart_div'));
+	    chart.draw(data, options);
+	  }
+	    
     </script>
   </head>
   <body data-spy="scroll" data-target=".sidebar">
@@ -254,7 +317,7 @@ catch (\PDOException $ex) {
           <tbody>
             <?php
             $arraySorted;
-
+			//Data for the first array
             if(isset($AllTipps) && sizeof($AllTipps)>0){
               for ($k=1; $k < sizeof($AllPlayer)+1; $k++) {
 
@@ -265,7 +328,14 @@ catch (\PDOException $ex) {
               usort($arraySorted, "cmp");
 
               for ($k=1; $k < sizeof($AllPlayer)+1; $k++) {
-                echo'<td>'.$k.'</td><td>'.$arraySorted[$k-1][0].'</td><td>'.$arraySorted[$k-1][1].'</td><td>'.$arraySorted[$k-1][2].'</td><td>'.$arraySorted[$k-1][3].'</td><td>'.$arraySorted[$k-1][4].'</td></tr>';
+                echo'<td>'.$k.'</td><td>';
+                if($k == $myID){
+    	            echo '<p class="highlight">'.$arraySorted[$k-1][0].'</p>';
+	            }
+	            else{
+	            	echo '<p>'.$arraySorted[$k-1][0].'</p>';	
+	            }
+                echo '</td><td>'.$arraySorted[$k-1][1].'</td><td>'.$arraySorted[$k-1][2].'</td><td>'.$arraySorted[$k-1][3].'</td><td>'.$arraySorted[$k-1][4].'</td></tr>';
               }
             }
             ?>
@@ -287,7 +357,12 @@ catch (\PDOException $ex) {
               <?php
               for ($i=1; $i < sizeof($AllPlayer)+1; $i++) {
               echo '<th>';
-                echo $AllPlayer[$i];
+              if($i == $myID){
+    	            echo '<p class="highlight">'.$AllPlayer[$i];'</p>';
+	            }
+	            else{
+	            	echo '<p>'.$AllPlayer[$i];'</p>';	
+	            }
               echo '</th>';
               }
               ?>
@@ -314,13 +389,13 @@ catch (\PDOException $ex) {
 
                   if($tip[0] == $i && $tip[1] == $k){
                   
-                  if($currentDateTime<$games[$i][3] ){
-                  $cont = '<span class="glyphicon glyphicon-ok"></span>';
-                  }
-                  else{
-                  $cont = $tip[2].' : '.$tip[3];
-                  }
-                  }
+                  	if($currentDateTime<$games[$i][3] ){
+                  		$cont = '<span class="glyphicon glyphicon-ok"></span>';
+                  	}
+              		else{
+                  		$cont = $tip[2].' : '.$tip[3];
+                  		}
+                  	}
                   }
                 }
                 
