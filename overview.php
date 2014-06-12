@@ -16,6 +16,7 @@ $ergebnisse = array();
 $spieltage  = array();
 $AllPlayer  = array();
 $AllGames_AllTipps = array();
+$draw = 0;
 $myID;
 $myName;
 $currentDateTime = new DateTime('now');
@@ -156,6 +157,9 @@ try {
     		$AllGames_AllTipps_Added_Position[$n][$m] = getPosition($AllGames_AllTipps_Added,$n,$m);
     	}
     }
+    if(sizeof($AllGames_AllTipps_Added_Position)>0){
+    	$draw = 1;
+    }
 }
 catch (\PDOException $ex) {
     echo ($ex);
@@ -228,9 +232,7 @@ catch (\PDOException $ex) {
 	    title: 'Punkte-Verlauf',
 	    hAxis: {title: 'Spiele',  titleTextStyle: {color: 'red'}}
 	    };
-	    var chart = new google.visualization.LineChart(document.getElementById('chart_div'));
-	    chart.draw(data, options);
-
+	   
 
 	    //---------------------------
 
@@ -261,8 +263,17 @@ catch (\PDOException $ex) {
 	    hAxis: {title: 'Spiele',  titleTextStyle: {color: 'red'}},
 		vAxis: { direction:'-1', maxValue:'10', minValue:'1',viewWindow: {min:'1'}}
 		};
-	    var chart2 = new google.visualization.LineChart(document.getElementById('chart_div2'));
-	    chart2.draw(data2, options2);
+<?php 
+	if($draw){
+		echo ' var chart = new google.visualization.LineChart(document.getElementById(\'chart_div\'));
+	    chart.draw(data, options);';
+		echo 'var chart2 = new google.visualization.LineChart(document.getElementById(\'chart_div2\'));
+	    chart2.draw(data2, options2);';
+	}
+
+?>
+
+	    
 	  }
 	    
     </script>
