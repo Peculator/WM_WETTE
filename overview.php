@@ -316,7 +316,7 @@ catch (\PDOException $ex) {
         </div>
       </div>
     </div>
-    <div style="margin-top:50px"></div>
+    <div style="margin-top:30px"></div>
     <div class="row" id="content">
       <!---------------------CONTENT---------------------------------------------->
       <div class="col-sm-3 col-md-2 sidebar">
@@ -330,6 +330,14 @@ catch (\PDOException $ex) {
         
       </div>
       <div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
+      <div style="margin-bottom:30px">
+    	Nach <?php echo sizeof($ergebnisse)-1?> von 64 Spielen
+    	<div class="progress">
+	  		<div class="progress-bar" role="progressbar" aria-valuenow="<?php echo (sizeof($ergebnisse)-1)/64*100?>" aria-valuemin="0" aria-valuemax="100" style="width: <?php echo (sizeof($ergebnisse)-1)/64*100?>%;">
+	    	<?php echo ceil((sizeof($ergebnisse)-1)/64*100)?>%
+	  		</div>
+		</div>
+      </div>
         <h3 id="Tabelle" class="sub-header">Tabelle</h3>
         <table class="table table-hover table-bordered">
           <thead>
@@ -391,12 +399,16 @@ catch (\PDOException $ex) {
             for ($i=1; $i < sizeof($games)+1; $i++) {
             echo '<tr>';
               echo '<td>'.$teams[$games[$i][0]][0].'-'.$teams[$games[$i][1]][0].'</td>';
-              if($ergebnisse[$games[$i][2]][2]!= 0 && $ergebnisse[$games[$i][2]][2] != 1){
-              echo '<td>'.$ergebnisse[$games[$i][2]][0].'-'.$ergebnisse[$games[$i][2]][1].'</td>';
+              if($ergebnisse[$games[$i][2]][2]!= 0 ){
+            	  echo '<td>'.$ergebnisse[$games[$i][2]][0].' : '.$ergebnisse[$games[$i][2]][1].'</td>';
+              }
+              else if($ergebnisse[$games[$i][2]][2]!= 0 && $ergebnisse[$games[$i][2]][2]!= 1){
+              	echo '<td>'.$ergebnisse[$games[$i][2]][2].'</td>';
               }
               else{
-              echo '<td>-:-</td>';
+              	echo '<td>-:-</td>';
               }
+
               for ($k=1; $k < sizeof($AllPlayer)+1; $k++) {
               
               echo '<td>';
@@ -412,12 +424,17 @@ catch (\PDOException $ex) {
                   	}
               		else{
                   		$cont = $tip[2].' : '.$tip[3];
-                  		}
-                  	}
-                  }
-                }
-                
-                echo $cont;
+                  		if($ergebnisse[$games[$i][2]][0] == $tip[2] && $ergebnisse[$games[$i][2]][1]== $tip[3]){
+		                	echo '<span style="color:blue;">'.$cont.'</span>';
+		                }
+	                	else{
+	                		echo $cont;
+	            		}
+              		}
+              	}
+              }
+            }
+           
               echo '</td>';
               }
             echo '</tr>';

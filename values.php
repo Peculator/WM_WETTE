@@ -110,7 +110,7 @@ function cmp($a, $b)
     if ($a == $b) {
         return 0;
     }
-    return ($a[4] < $b[4]) ? -1 : 1;
+    return ($a[4] < $b[4]) ? 1 : -1;
 }
 
 ?>
