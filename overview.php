@@ -357,12 +357,7 @@ catch (\PDOException $ex) {
 
               for ($k=1; $k < sizeof($AllPlayer)+1; $k++) {
                 echo'<td>'.$k.'</td><td>';
-                if($k == $myID){
-    	            echo '<p class="highlight">'.$arraySorted[$k-1][0].'</p>';
-	            }
-	            else{
-	            	echo '<p>'.$arraySorted[$k-1][0].'</p>';	
-	            }
+	            echo '<p>'.$arraySorted[$k-1][0].'</p>';	
                 echo '</td><td>'.$arraySorted[$k-1][1].'</td><td>'.$arraySorted[$k-1][2].'</td><td>'.$arraySorted[$k-1][3].'</td><td>'.$arraySorted[$k-1][4].'</td></tr>';
               }
             }
@@ -384,15 +379,10 @@ catch (\PDOException $ex) {
               <th>Ergebnis</th>
               <?php
               for ($i=1; $i < sizeof($AllPlayer)+1; $i++) {
-              echo '<th>';
-              if($i == $myID){
-    	            echo '<p class="highlight">'.$AllPlayer[$i];'</p>';
-	            }
-	            else{
-	            	echo '<p>'.$AllPlayer[$i];'</p>';	
-	            }
-              echo '</th>';
-              }
+	              echo '<th>';
+		          echo '<p>'.$AllPlayer[$i];'</p>';	
+	              echo '</th>';
+	              }
               ?>
             </tr>
           </thead>
