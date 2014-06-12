@@ -131,6 +131,21 @@ try {
         foreach ($_POST as $key => $value) {
             if ($value != "") {
                 
+                //Valid bet-time
+ 				$handle = $link->prepare('Select * FROM Spiele WHERE ID = ?');
+                $handle->bindValue(1, substr($key, 0, -1), PDO::PARAM_INT);
+                $handle->execute();
+                
+                $result = $handle->fetchAll(\PDO::FETCH_OBJ);
+
+				foreach ($result as $row) {
+				        if($row->DATETIME < $currentDateTime){
+				        	echo 'It\'s to late!. Please reload this site. ';
+				        	return;
+				        }
+				}                
+
+
                 //Does the game exists?
                 $handle = $link->prepare('Select * FROM Tipps WHERE SpielerID = ? AND SpielID = ?');
                 $handle->bindValue(1, $myID, PDO::PARAM_INT);
@@ -328,13 +343,19 @@ catch (\PDOException $ex) {
                         
                                 echo' <div class="resultcenter"><span class="results">';
                         
-                                if($currentDateTime<$game[3] || $ergebnisse[$game[2]][2] == 0){
+                                if($currentDateTime<$game[3]){
                                   echo '- : -'; 
                                   $dis = "";
                                 } 
                                 else{ 
-                                  echo $ergebnisse[$game[2]][0].' : '.$ergebnisse[$game[2]][1];
                                   $dis = "disabled";
+
+                                  if($ergebnisse[$game[2]][2] != 0  && $ergebnisse[$game[2]][2] != 1){
+                                  	echo $ergebnisse[$game[2]][0].' : '.$ergebnisse[$game[2]][1];
+                                  }else{
+                                  	echo '- : -'; 
+                                  }
+
                                 }
                         
                                 if($ergebnisse[$game[2]][2] != 0  && $ergebnisse[$game[2]][2] != 1){
