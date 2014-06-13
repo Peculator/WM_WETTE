@@ -392,11 +392,15 @@ catch (\PDOException $ex) {
 	              echo '</th>';
 	              }
               ?>
+              <th>Durchschnitts-Tipp</th>
             </tr>
           </thead>
           <tbody>
             <?php
             for ($i=1; $i < sizeof($games)+1; $i++) {
+            	$numTips=0;
+            	$avTip1=0;
+            	$avTip2=0;
             echo '<tr>';
               echo '<td>'.$teams[$games[$i][0]][0].'-'.$teams[$games[$i][1]][0].'</td>';
               if($ergebnisse[$games[$i][2]][2]!= 0 ){
@@ -415,30 +419,37 @@ catch (\PDOException $ex) {
                 $cont = '<span class="glyphicon glyphicon-remove"></span>';
 
                 if(isset($AllTipps) && sizeof($AllTipps)>0){
-                foreach ($AllTipps as $tip) {
+	                foreach ($AllTipps as $tip) {
+						
+	                  if($tip[0] == $i && $tip[1] == $k){
 
-                  if($tip[0] == $i && $tip[1] == $k){
-                  
-                  	if($currentDateTime<$games[$i][3] ){
-                  		$cont = '<span class="glyphicon glyphicon-ok"></span>';
-                  	}
-              		else{
-                  		$cont = $tip[2].' : '.$tip[3];
-                  		if($ergebnisse[$games[$i][2]][0] == $tip[2] && $ergebnisse[$games[$i][2]][1]== $tip[3]){
-		                	echo '<span style="color:blue;">'.$cont.'</span>';
-		                }
-	                	else{
-	                		echo $cont;
-	            		}
-              		}
-              	}
-              }
+	                  	if($currentDateTime<$games[$i][3] ){
+	                  		$cont = '<span class="glyphicon glyphicon-ok"></span>';
+	                  	}
+	              		else{
+	                  		$cont = $tip[2].' : '.$tip[3];
+	                  		$numTips+=1;
+	                  		$avTip1 += $tip[2];
+	                  		$avTip2 += $tip[3];
+
+	                  		if($ergebnisse[$games[$i][2]][0] == $tip[2] && $ergebnisse[$games[$i][2]][1]== $tip[3]){
+			                	$cont = '<span style="color:blue;">'.$cont.'</span>';
+			                }
+	              		}
+	              	}
+            	}
             }
-           
+        	echo $cont;   	  
               echo '</td>';
               }
+              if($numTips!=0){
+           	   echo '<td>'.floor($avTip1/$numTips).' : '.floor($avTip2/$numTips).'</td>';
+          	}else{
+          		echo '<td>-:-</td>';
+          	}
             echo '</tr>';
             }
+        
             ?>
           </tbody>
         </table>
