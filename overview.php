@@ -384,7 +384,7 @@ catch (\PDOException $ex) {
           <thead>
             <tr>
               <th>Spiel</th>
-              <th>Ergebnis</th>
+              <th>Erg.</th>
               <?php
               for ($i=1; $i < sizeof($AllPlayer)+1; $i++) {
 	              echo '<th>';
@@ -392,7 +392,7 @@ catch (\PDOException $ex) {
 	              echo '</th>';
 	              }
               ?>
-              <th>Durchschnitts-Tipp</th>
+              <th>&#216;</th>
             </tr>
           </thead>
           <tbody>
