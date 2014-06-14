@@ -2,26 +2,15 @@
 session_start();
 include("values.php");
 
-if (isset($_GET["pw"])) {
-    $pw             = htmlspecialchars($_GET["pw"]);
-    $_SESSION['pw'] = $pw;
-}
-if (!isset($_SESSION['pw'])) {
-    echo 'NO PASSWORD';
-    return;
-}
 $games      = array();
 $teams      = array();
 $ergebnisse = array();
 $spieltage  = array();
 $AllPlayer  = array();
-$AveragePlayer = array();
 $AllGames_AllTipps = array();
 $draw = 0;
-$myID;
-$myName;
-$currentDateTime = new DateTime('now');
-$currentDateTime = date_format($currentDateTime, 'Y-m-d H:i:s');
+
+
 try {
     
     include("connection.php");
@@ -76,19 +65,7 @@ try {
     foreach ($result as $row) {
         $AllPlayer[$row->ID] = $row->NAME;
     }
-    // ----------------- User --------------
-    $handle = $link->prepare('select * from Spieler Where PWD = ? limit 1');
-    $handle->bindValue(1, $_SESSION["pw"], PDO::PARAM_INT);
-    $handle->execute();
-    $result = $handle->fetchAll(\PDO::FETCH_OBJ);
-    foreach ($result as $row) {
-        $myID   = $row->ID;
-        $myName = $row->NAME;
-    }
-    if ($result == null) {
-        echo 'WRONG PASSWORD';
-        return;
-    }
+    
     // ----------------- Alle Tipps --------------
     $handle = $link->prepare('select * from Tipps limit 500');
     $handle->execute();
@@ -101,25 +78,14 @@ try {
             $row->Tipp2
         );
     }
-    // ----------------- Meine Tipps --------------
-    $handle = $link->prepare('select * from Tipps WHERE SpielerID = ? limit 500');
-    $handle->bindValue(1, $myID, PDO::PARAM_INT);
-    $handle->execute();
     
-    $result = $handle->fetchAll(\PDO::FETCH_OBJ);
-    foreach ($result as $row) {
-        $myTipps[$row->SpielID] = array(
-            $row->Tipp1,
-            $row->Tipp2
-        );
-    }
 
     // Graphs
 	// ----------------- Alle Tipps von allen bisherigen Spielen pro Spieler--------------
 	// [ Spielnummer ] := a[Spielernummer]= tippID
     for ($i=1; $i < sizeof($games)+1; $i++) { 
 
-		if($games[$i][3]<$currentDateTime && $ergebnisse[$games[$i][2]][2]!=0){
+		if($ergebnisse[$games[$i][2]][2]!=0){
 	    	for ($k=1; $k < sizeof($AllPlayer)+1; $k++) { 
 
 	    		if(!isset($AllGames_AllTipps[$i])){
@@ -312,7 +278,7 @@ catch (\PDOException $ex) {
               ?>
               </a></li>
             <li class="active" ><a href="overview.php"><?php echo $name2;?></a></li>
-            <li><span class="nameHighlight"><?php echo $myName;?></span></li>
+            <li></li>
           </ul>
         </div>
       </div>
@@ -413,6 +379,7 @@ catch (\PDOException $ex) {
               else{
               	echo '<td>-:-</td>';
               }
+
               for ($k=1; $k < sizeof($AllPlayer)+1; $k++) {
               
               echo '<td>';
@@ -423,10 +390,6 @@ catch (\PDOException $ex) {
 						
 	                  if($tip[0] == $i && $tip[1] == $k){
 
-	                  	if($currentDateTime<$games[$i][3] ){
-	                  		$cont = '<span class="glyphicon glyphicon-ok"></span>';
-	                  	}
-	              		else{
 	                  		$cont = $tip[2].' : '.$tip[3];
 	                  		$numTips+=1;
 	                  		$avTip1 += $tip[2];
@@ -436,7 +399,6 @@ catch (\PDOException $ex) {
 			                	$cont = '<span style="color:blue;">'.$cont.'</span>';
 			                }
 	              		}
-	              	}
             	}
             }
         	echo $cont;   	  
