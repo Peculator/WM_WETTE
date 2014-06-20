@@ -151,6 +151,8 @@ try {
     		}
     	}
     }
+
+    $arraySorted = array();
     // Remember the position
     $AllGames_AllTipps_Added_Position = array();
     for ($n=1; $n < sizeof($AllGames_AllTipps_Added)+1; $n++) { 
@@ -353,7 +355,6 @@ catch (\PDOException $ex) {
           </thead>
           <tbody>
             <?php
-            $arraySorted;
 			//Data for the first array
             if(isset($AllTipps) && sizeof($AllTipps)>0){
               for ($k=1; $k < sizeof($AllPlayer)+1; $k++) {
@@ -375,10 +376,10 @@ catch (\PDOException $ex) {
         </table>
       </br>
         <h3  id="Punkte" class="sub-header">Punkte-Verlauf</h3>
-        <div id="chart_div"></div>
+        <div id="chart_div" style="height:500px"></div>
         </br>
         <h3  id="Platz" class="sub-header">Platzierungs-Verlauf</h3>
-        <div id="chart_div2"></div>
+        <div id="chart_div2" style="height:500px"></div>
         </br>
         <h3  id="Uber" class="sub-header">Übersicht</h3>
         <table class="table table-hover table-bordered">
@@ -443,7 +444,7 @@ catch (\PDOException $ex) {
               echo '</td>';
               }
               if($numTips!=0){
-           	   echo '<td>'.floor($avTip1/$numTips).' : '.floor($avTip2/$numTips).'</td>';
+           	   echo '<td>'.floor(floor($avTip1*10/$numTips)/10).' : '.floor(floor($avTip2*10/$numTips)/10).'</td>';
           	}else{
           		echo '<td>-:-</td>';
           	}

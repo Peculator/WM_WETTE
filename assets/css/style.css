@@ -20,6 +20,10 @@
 td {
     min-width: 45px;
 }
+tbody {
+    overflow-y: scroll;
+    height: 600px;
+}
 .line {
     display: inline;
     padding-top: 10px;

@@ -242,6 +242,12 @@ catch (\PDOException $ex) {
         <script src="assets/js/jquery-1.11.1.min.js"></script>
         <script type="text/javascript">
             $(document).ready(function() {
+            	
+            	var d = new Date();
+            	var month = d.getMonth()+1;
+				var day = d.getDate();
+            	var output = d.getFullYear() + '-' + ((''+month).length<2 ? '0' : '') + month + '-' + ((''+day).length<2 ? '0' : '') + day + ' '
+            	$('html,body').animate({scrollTop: $("#"+output).offset().top},'slow');
                 
                 $('.nav-sidebar>li>a').click(function() {
                     $('.nav>li').removeClass();
