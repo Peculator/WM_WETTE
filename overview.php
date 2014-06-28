@@ -90,7 +90,7 @@ try {
         return;
     }
     // ----------------- Alle Tipps --------------
-    $handle = $link->prepare('select * from Tipps limit 500');
+    $handle = $link->prepare('select * from Tipps limit 1000');
     $handle->execute();
     $result = $handle->fetchAll(\PDO::FETCH_OBJ);
     foreach ($result as $row) {
@@ -102,7 +102,7 @@ try {
         );
     }
     // ----------------- Meine Tipps --------------
-    $handle = $link->prepare('select * from Tipps WHERE SpielerID = ? limit 500');
+    $handle = $link->prepare('select * from Tipps WHERE SpielerID = ? limit 1000');
     $handle->bindValue(1, $myID, PDO::PARAM_INT);
     $handle->execute();
     
@@ -406,10 +406,12 @@ catch (\PDOException $ex) {
             echo '<tr>';
               echo '<td>'.$teams[$games[$i][0]][0].'-'.$teams[$games[$i][1]][0].'</td>';
               if($ergebnisse[$games[$i][2]][2]!= 0 ){
-            	  echo '<td>'.$ergebnisse[$games[$i][2]][0].' : '.$ergebnisse[$games[$i][2]][1].'</td>';
-              }
-              else if($ergebnisse[$games[$i][2]][2]!= 0 && $ergebnisse[$games[$i][2]][2]!= 1){
-              	echo '<td>'.$ergebnisse[$games[$i][2]][2].'</td>';
+            	  echo '<td>'.$ergebnisse[$games[$i][2]][0].' : '.$ergebnisse[$games[$i][2]][1];
+
+            	if($ergebnisse[$games[$i][2]][2]!= 0 && $ergebnisse[$games[$i][2]][2]!= 1){
+              		echo ' '.$ergebnisse[$games[$i][2]][2];
+              	}
+              	echo '</td>';
               }
               else{
               	echo '<td>-:-</td>';
@@ -421,7 +423,7 @@ catch (\PDOException $ex) {
 
                 if(isset($AllTipps) && sizeof($AllTipps)>0){
 	                foreach ($AllTipps as $tip) {
-						
+
 	                  if($tip[0] == $i && $tip[1] == $k){
 
 	                  	if($currentDateTime<$games[$i][3] ){
