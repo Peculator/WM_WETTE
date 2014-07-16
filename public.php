@@ -7,10 +7,15 @@ $teams      = array();
 $ergebnisse = array();
 $spieltage  = array();
 $AllPlayer  = array();
+$AllPlayer_Result_div  = array();
+$result_div=array();
+$AveragePlayer = array();
 $AllGames_AllTipps = array();
 $draw = 0;
-
-
+$myID;
+$myName;
+$currentDateTime = new DateTime('now');
+$currentDateTime = date_format($currentDateTime, 'Y-m-d H:i:s');
 try {
     
     include("connection.php");
@@ -56,6 +61,31 @@ try {
             $row->Extra
         );
     }
+
+
+    //-----------------------Ergebnis-Verteilung--------------- 
+    //$result_div['3-4'] = 2;
+
+    foreach ($ergebnisse as $erg) {
+    	if($erg[0]>=$erg[1]){
+    		if(isset($result_div[$erg[0].'-'.$erg[1]])){
+    			$result_div[$erg[0].'-'.$erg[1]] ++;
+	    	}else{
+	    		$result_div[$erg[0].'-'.$erg[1]] = 1;
+	    	}
+    	}
+    	else {
+			if(isset($result_div[$erg[1].'-'.$erg[0]])){
+    			$result_div[$erg[1].'-'.$erg[0]] ++;
+	    	}else{
+	    		$result_div[$erg[1].'-'.$erg[0]] = 1;
+	    	}
+    	}  	
+    }
+    $result_div['0-0'] --;
+    ksort($result_div);
+
+
     // ----------------- Spieltage --------------
     $spieltage = array_unique($spieltage);
     // ----------------- AllPlayer --------------
@@ -65,9 +95,21 @@ try {
     foreach ($result as $row) {
         $AllPlayer[$row->ID] = $row->NAME;
     }
-    
+    // ----------------- User --------------
+    $handle = $link->prepare('select * from Spieler Where PWD = ? limit 1');
+    $handle->bindValue(1, $_SESSION["pw"], PDO::PARAM_INT);
+    $handle->execute();
+    $result = $handle->fetchAll(\PDO::FETCH_OBJ);
+    foreach ($result as $row) {
+        $myID   = $row->ID;
+        $myName = $row->NAME;
+    }
+    if ($result == null) {
+        echo 'WRONG PASSWORD';
+        return;
+    }
     // ----------------- Alle Tipps --------------
-    $handle = $link->prepare('select * from Tipps limit 500');
+    $handle = $link->prepare('select * from Tipps limit 2000');
     $handle->execute();
     $result = $handle->fetchAll(\PDO::FETCH_OBJ);
     foreach ($result as $row) {
@@ -78,14 +120,40 @@ try {
             $row->Tipp2
         );
     }
+
+    //----------------------- Tipp-Kreativität-------------------
+
+    for ($j=1; $j < sizeof($AllPlayer)+1; $j++) { 
+    	$ctr = 0;
+    	$used = array();
+	    foreach ($AllTipps as $tipp) {
+    		if($j == $tipp[1] && !in_array($tipp[2].'-'.$tipp[3], $used)){
+    			$ctr++;
+    			array_push($used, $tipp[2].'-'.$tipp[3]);
+    		}
+	    }
+	    $AllPlayer_Result_div[$j]=$ctr;
+	}
+
+    // ----------------- Meine Tipps --------------
+    $handle = $link->prepare('select * from Tipps WHERE SpielerID = ? limit 2000');
+    $handle->bindValue(1, $myID, PDO::PARAM_INT);
+    $handle->execute();
     
+    $result = $handle->fetchAll(\PDO::FETCH_OBJ);
+    foreach ($result as $row) {
+        $myTipps[$row->SpielID] = array(
+            $row->Tipp1,
+            $row->Tipp2
+        );
+    }
 
     // Graphs
 	// ----------------- Alle Tipps von allen bisherigen Spielen pro Spieler--------------
 	// [ Spielnummer ] := a[Spielernummer]= tippID
     for ($i=1; $i < sizeof($games)+1; $i++) { 
 
-		if($ergebnisse[$games[$i][2]][2]!=0){
+		if($games[$i][3]<$currentDateTime && $ergebnisse[$games[$i][2]][2]!=0){
 	    	for ($k=1; $k < sizeof($AllPlayer)+1; $k++) { 
 
 	    		if(!isset($AllGames_AllTipps[$i])){
@@ -117,6 +185,8 @@ try {
     		}
     	}
     }
+
+    $arraySorted = array();
     // Remember the position
     $AllGames_AllTipps_Added_Position = array();
     for ($n=1; $n < sizeof($AllGames_AllTipps_Added)+1; $n++) { 
@@ -228,14 +298,65 @@ catch (\PDOException $ex) {
 	    var options2 = {
 	    title: 'Platzierungs-Verlauf',
 	    hAxis: {title: 'Spiele',  titleTextStyle: {color: 'red'}},
+		dataOpacity: '0.9',
 		vAxis: { direction:'-1', maxValue:'10', minValue:'1',viewWindow: {min:'1'}}
 		};
+
+		//---------------------------
+
+	    var data3 = google.visualization.arrayToDataTable([	    	
+	    ['Result', <?php for ($p=1; $p < sizeof($AllPlayer)+1; $p++) { 
+	    	echo '\''.$AllPlayer[$p].'\',';
+	    }
+	     echo '],';
+		 echo '[ 0,';
+	    for ($i=1; $i<sizeOf($AllPlayer_Result_div)+1;$i++) {
+	    	
+			if($AllPlayer_Result_div[$i]!=null){
+					echo $AllPlayer_Result_div[$i].',';
+			}
+				
+	    }
+	    echo ']';
+	    echo ']);';
+		?>
+
+	    
+	    var options3 = {
+	      title: 'Tipp Kreativität',
+	      hAxis:{textPosition:'none'},
+		};
+
+		//---------------------------
+
+	    var data4 = google.visualization.arrayToDataTable([	 
+	    ['Name', 'result'],
+
+	    <?php foreach ($result_div as $value=>$res) {
+	    	echo '[ \''.$value.'\','.$res.'],';		   
+	    }
+	    
+	    echo ']);';
+
+		?>
+
+	    
+	    var options4 = {
+	      title: 'Ergebnis-Vielfalt',
+		};
+
+		
 <?php 
 	if($draw){
 		echo ' var chart = new google.visualization.LineChart(document.getElementById(\'chart_div\'));
 	    chart.draw(data, options);';
 		echo 'var chart2 = new google.visualization.LineChart(document.getElementById(\'chart_div2\'));
 	    chart2.draw(data2, options2);';
+	    echo 'var chart3 = new google.visualization.ColumnChart(document.getElementById(\'chart_div3\'));
+	    chart3.draw(data3, options3);';
+	    echo 'var chart4 = new google.visualization.PieChart(document.getElementById(\'chart_div4\'));
+	    chart4.draw(data4, options4);';
+
 	}
 
 ?>
@@ -278,7 +399,7 @@ catch (\PDOException $ex) {
               ?>
               </a></li>
             <li class="active" ><a href="overview.php"><?php echo $name2;?></a></li>
-            <li></li>
+            <li><span class="nameHighlight"><?php echo $myName;?></span></li>
           </ul>
         </div>
       </div>
@@ -291,6 +412,8 @@ catch (\PDOException $ex) {
           <li class="active"><a href="#Tabelle">Tabelle</a></li>
           <li><a href="#Punkte">Punkte-Verlauf</a></li>
           <li><a href="#Platz">Platzierungs-Verlauf</a></li>
+          <li><a href="#Kreativ">Tipp-Kreativität</a></li>
+          <li><a href="#Vielfalt">Ergebnis-Vielfalt</a></li>
           <li><a href="#Uber">Übersicht</a></li>
           
         </ul>
@@ -319,7 +442,6 @@ catch (\PDOException $ex) {
           </thead>
           <tbody>
             <?php
-            $arraySorted;
 			//Data for the first array
             if(isset($AllTipps) && sizeof($AllTipps)>0){
               for ($k=1; $k < sizeof($AllPlayer)+1; $k++) {
@@ -341,10 +463,16 @@ catch (\PDOException $ex) {
         </table>
       </br>
         <h3  id="Punkte" class="sub-header">Punkte-Verlauf</h3>
-        <div id="chart_div"></div>
+        <div id="chart_div" style="height:500px"></div>
         </br>
         <h3  id="Platz" class="sub-header">Platzierungs-Verlauf</h3>
-        <div id="chart_div2"></div>
+        <div id="chart_div2" style="height:500px"></div>
+        </br>
+        <h3  id="Kreativ" class="sub-header">Tipp-Kreativität</h3>
+        <div id="chart_div3" style="height:500px"></div>
+        </br>
+        <h3  id="Vielfalt" class="sub-header">Ergebnis-Vielfalt</h3>
+        <div id="chart_div4" style="height:600px"></div>
         </br>
         <h3  id="Uber" class="sub-header">Übersicht</h3>
         <table class="table table-hover table-bordered">
@@ -359,7 +487,7 @@ catch (\PDOException $ex) {
 	              echo '</th>';
 	              }
               ?>
-              <th>&#216;</th>
+              <!-- <th>&#216;</th> -->
             </tr>
           </thead>
           <tbody>
@@ -371,15 +499,16 @@ catch (\PDOException $ex) {
             echo '<tr>';
               echo '<td>'.$teams[$games[$i][0]][0].'-'.$teams[$games[$i][1]][0].'</td>';
               if($ergebnisse[$games[$i][2]][2]!= 0 ){
-            	  echo '<td>'.$ergebnisse[$games[$i][2]][0].' : '.$ergebnisse[$games[$i][2]][1].'</td>';
-              }
-              else if($ergebnisse[$games[$i][2]][2]!= 0 && $ergebnisse[$games[$i][2]][2]!= 1){
-              	echo '<td>'.$ergebnisse[$games[$i][2]][2].'</td>';
+            	  echo '<td>'.$ergebnisse[$games[$i][2]][0].' : '.$ergebnisse[$games[$i][2]][1];
+
+            	if($ergebnisse[$games[$i][2]][2]!= 0 && $ergebnisse[$games[$i][2]][2]!= 1){
+              		echo ' '.$ergebnisse[$games[$i][2]][2];
+              	}
+              	echo '</td>';
               }
               else{
               	echo '<td>-:-</td>';
               }
-
               for ($k=1; $k < sizeof($AllPlayer)+1; $k++) {
               
               echo '<td>';
@@ -387,9 +516,13 @@ catch (\PDOException $ex) {
 
                 if(isset($AllTipps) && sizeof($AllTipps)>0){
 	                foreach ($AllTipps as $tip) {
-						
+
 	                  if($tip[0] == $i && $tip[1] == $k){
 
+	                  	if($currentDateTime<$games[$i][3] ){
+	                  		$cont = '<span class="glyphicon glyphicon-ok"></span>';
+	                  	}
+	              		else{
 	                  		$cont = $tip[2].' : '.$tip[3];
 	                  		$numTips+=1;
 	                  		$avTip1 += $tip[2];
@@ -399,16 +532,17 @@ catch (\PDOException $ex) {
 			                	$cont = '<span style="color:blue;">'.$cont.'</span>';
 			                }
 	              		}
+	              	}
             	}
             }
         	echo $cont;   	  
               echo '</td>';
               }
-              if($numTips!=0){
-           	   echo '<td>'.floor($avTip1/$numTips).' : '.floor($avTip2/$numTips).'</td>';
-          	}else{
-          		echo '<td>-:-</td>';
-          	}
+           //    if($numTips!=0){
+           // 	   echo '<td>'.floor(floor($avTip1*10/$numTips)/10).' : '.floor(floor($avTip2*10/$numTips)/10).'</td>';
+          	// }else{
+          	// 	echo '<td>-:-</td>';
+          	// }
             echo '</tr>';
             }
         

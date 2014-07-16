@@ -91,7 +91,7 @@ try {
     }
     
     // ----------------- Ergebnisse --------------
-    $handle = $link->prepare('select * from Ergebnis limit 500');
+    $handle = $link->prepare('select * from Ergebnis limit 2000');
     $handle->execute();
     
     $result = $handle->fetchAll(\PDO::FETCH_OBJ);
@@ -185,7 +185,7 @@ try {
     
     // ----------------- Meine Tipps --------------    
     
-    $handle = $link->prepare('select * from Tipps WHERE SpielerID = ? limit 500');
+    $handle = $link->prepare('select * from Tipps WHERE SpielerID = ? limit 2000');
     $handle->bindValue(1, $myID, PDO::PARAM_INT);
     
     $handle->execute();
@@ -202,7 +202,7 @@ try {
     
     
     // ----------------- Alle Tipps --------------
-    $handle = $link->prepare('select * from Tipps limit 500');
+    $handle = $link->prepare('select * from Tipps limit 2000');
     $handle->execute();
     
     $result = $handle->fetchAll(\PDO::FETCH_OBJ);

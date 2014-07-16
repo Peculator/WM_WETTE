@@ -15,6 +15,8 @@ $teams      = array();
 $ergebnisse = array();
 $spieltage  = array();
 $AllPlayer  = array();
+$AllPlayer_Result_div  = array();
+$result_div=array();
 $AveragePlayer = array();
 $AllGames_AllTipps = array();
 $draw = 0;
@@ -67,6 +69,31 @@ try {
             $row->Extra
         );
     }
+
+
+    //-----------------------Ergebnis-Verteilung--------------- 
+    //$result_div['3-4'] = 2;
+
+    foreach ($ergebnisse as $erg) {
+    	if($erg[0]>=$erg[1]){
+    		if(isset($result_div[$erg[0].'-'.$erg[1]])){
+    			$result_div[$erg[0].'-'.$erg[1]] ++;
+	    	}else{
+	    		$result_div[$erg[0].'-'.$erg[1]] = 1;
+	    	}
+    	}
+    	else {
+			if(isset($result_div[$erg[1].'-'.$erg[0]])){
+    			$result_div[$erg[1].'-'.$erg[0]] ++;
+	    	}else{
+	    		$result_div[$erg[1].'-'.$erg[0]] = 1;
+	    	}
+    	}  	
+    }
+    $result_div['0-0'] --;
+    ksort($result_div);
+
+
     // ----------------- Spieltage --------------
     $spieltage = array_unique($spieltage);
     // ----------------- AllPlayer --------------
@@ -90,7 +117,7 @@ try {
         return;
     }
     // ----------------- Alle Tipps --------------
-    $handle = $link->prepare('select * from Tipps limit 1000');
+    $handle = $link->prepare('select * from Tipps limit 2000');
     $handle->execute();
     $result = $handle->fetchAll(\PDO::FETCH_OBJ);
     foreach ($result as $row) {
@@ -101,8 +128,23 @@ try {
             $row->Tipp2
         );
     }
+
+    //----------------------- Tipp-Kreativität-------------------
+
+    for ($j=1; $j < sizeof($AllPlayer)+1; $j++) { 
+    	$ctr = 0;
+    	$used = array();
+	    foreach ($AllTipps as $tipp) {
+    		if($j == $tipp[1] && !in_array($tipp[2].'-'.$tipp[3], $used)){
+    			$ctr++;
+    			array_push($used, $tipp[2].'-'.$tipp[3]);
+    		}
+	    }
+	    $AllPlayer_Result_div[$j]=$ctr;
+	}
+
     // ----------------- Meine Tipps --------------
-    $handle = $link->prepare('select * from Tipps WHERE SpielerID = ? limit 1000');
+    $handle = $link->prepare('select * from Tipps WHERE SpielerID = ? limit 2000');
     $handle->bindValue(1, $myID, PDO::PARAM_INT);
     $handle->execute();
     
@@ -264,14 +306,65 @@ catch (\PDOException $ex) {
 	    var options2 = {
 	    title: 'Platzierungs-Verlauf',
 	    hAxis: {title: 'Spiele',  titleTextStyle: {color: 'red'}},
+		dataOpacity: '0.9',
 		vAxis: { direction:'-1', maxValue:'10', minValue:'1',viewWindow: {min:'1'}}
 		};
+
+		//---------------------------
+
+	    var data3 = google.visualization.arrayToDataTable([	    	
+	    ['Result', <?php for ($p=1; $p < sizeof($AllPlayer)+1; $p++) { 
+	    	echo '\''.$AllPlayer[$p].'\',';
+	    }
+	     echo '],';
+		 echo '[ 0,';
+	    for ($i=1; $i<sizeOf($AllPlayer_Result_div)+1;$i++) {
+	    	
+			if($AllPlayer_Result_div[$i]!=null){
+					echo $AllPlayer_Result_div[$i].',';
+			}
+				
+	    }
+	    echo ']';
+	    echo ']);';
+		?>
+
+	    
+	    var options3 = {
+	      title: 'Tipp Kreativität',
+	      hAxis:{textPosition:'none'},
+		};
+
+		//---------------------------
+
+	    var data4 = google.visualization.arrayToDataTable([	 
+	    ['Name', 'result'],
+
+	    <?php foreach ($result_div as $value=>$res) {
+	    	echo '[ \''.$value.'\','.$res.'],';		   
+	    }
+	    
+	    echo ']);';
+
+		?>
+
+	    
+	    var options4 = {
+	      title: 'Ergebnis-Vielfalt',
+		};
+
+		
 <?php 
 	if($draw){
 		echo ' var chart = new google.visualization.LineChart(document.getElementById(\'chart_div\'));
 	    chart.draw(data, options);';
 		echo 'var chart2 = new google.visualization.LineChart(document.getElementById(\'chart_div2\'));
 	    chart2.draw(data2, options2);';
+	    echo 'var chart3 = new google.visualization.ColumnChart(document.getElementById(\'chart_div3\'));
+	    chart3.draw(data3, options3);';
+	    echo 'var chart4 = new google.visualization.PieChart(document.getElementById(\'chart_div4\'));
+	    chart4.draw(data4, options4);';
+
 	}
 
 ?>
@@ -327,6 +420,8 @@ catch (\PDOException $ex) {
           <li class="active"><a href="#Tabelle">Tabelle</a></li>
           <li><a href="#Punkte">Punkte-Verlauf</a></li>
           <li><a href="#Platz">Platzierungs-Verlauf</a></li>
+          <li><a href="#Kreativ">Tipp-Kreativität</a></li>
+          <li><a href="#Vielfalt">Ergebnis-Vielfalt</a></li>
           <li><a href="#Uber">Übersicht</a></li>
           
         </ul>
@@ -381,6 +476,12 @@ catch (\PDOException $ex) {
         <h3  id="Platz" class="sub-header">Platzierungs-Verlauf</h3>
         <div id="chart_div2" style="height:500px"></div>
         </br>
+        <h3  id="Kreativ" class="sub-header">Tipp-Kreativität</h3>
+        <div id="chart_div3" style="height:500px"></div>
+        </br>
+        <h3  id="Vielfalt" class="sub-header">Ergebnis-Vielfalt</h3>
+        <div id="chart_div4" style="height:600px"></div>
+        </br>
         <h3  id="Uber" class="sub-header">Übersicht</h3>
         <table class="table table-hover table-bordered">
           <thead>
@@ -394,7 +495,7 @@ catch (\PDOException $ex) {
 	              echo '</th>';
 	              }
               ?>
-              <th>&#216;</th>
+              <!-- <th>&#216;</th> -->
             </tr>
           </thead>
           <tbody>
@@ -445,11 +546,11 @@ catch (\PDOException $ex) {
         	echo $cont;   	  
               echo '</td>';
               }
-              if($numTips!=0){
-           	   echo '<td>'.floor(floor($avTip1*10/$numTips)/10).' : '.floor(floor($avTip2*10/$numTips)/10).'</td>';
-          	}else{
-          		echo '<td>-:-</td>';
-          	}
+           //    if($numTips!=0){
+           // 	   echo '<td>'.floor(floor($avTip1*10/$numTips)/10).' : '.floor(floor($avTip2*10/$numTips)/10).'</td>';
+          	// }else{
+          	// 	echo '<td>-:-</td>';
+          	// }
             echo '</tr>';
             }
         

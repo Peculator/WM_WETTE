@@ -7,7 +7,7 @@ $name2 = "Tabelle";
 function getPoints($tipp,$ergebnisse,$spiele,$playerID,$gameIndex){
 $result = 0;
 
-for ($i=0; $i < sizeof($spiele); $i++) { 
+for ($i=1; $i < sizeof($spiele)+1; $i++) { 
 
 	if($tipp[1]==$playerID && $tipp[0]==$i && $i==$gameIndex){
 	
@@ -79,7 +79,7 @@ function getCounterSingle($tipps,$ergebnisse,$spiele,$playerID,$gameIndex){
 	if(sizeof($tipps)==0)return 0;
 
 	foreach ($tipps as $tipp) {
-		for ($i=0; $i < sizeof($spiele); $i++) { 
+		for ($i=0; $i < sizeof($spiele)+1; $i++) { 
 
 			if($tipp[1]==$playerID && $tipp[0]==$i && $i==$gameIndex){
 			
